@@ -1,26 +1,28 @@
 #!/bin/bash
 
+BASEURL="https://raw.githubusercontent.com/Yadoking/GenProduction/master"
+MGURL="https://launchpad.net/mg5amcnlo/2.0/2.6.x/+download/MG5_aMC_v2.6.0.tar.gz"
+MG=MG5_aMC_v2_6_0
+WORKDIR=`pwd`
+
 ## Initialize envvars
 source /opt/rh/devtoolset-4/enable 
 source /opt/rh/python27/enable 
 
 ## For the users who don't want git-clone
 if [ ! -d patch ]; then
-    BASEURL="https://raw.githubusercontent.com/Yadoking/GenProduction/master/install"
     mkdir patch
     for FILE in avh_olo_print.f90 cluster.py; do
-        wget $BASEURL/patch/$FILE -O patch/$FILE
+        wget $BASEURL/install/patch/$FILE -O patch/$FILE
     done
 fi
 
 ## Download packages
-wget https://launchpad.net/mg5amcnlo/2.0/2.6.x/+download/MG5_aMC_v2.6.0.tar.gz
-tar xzf MG5_aMC_v2.6.0.tar.gz
-MG=MG5_aMC_v2_6_0
+[ -f `basename $MGURL` ] || wget $MGURL
+tar xzf `basename $MGURL`
 mv $MG ..
 MG=`readlink -f ../$MG`
 
-WORKDIR=`pwd`
 cd $MG
 
 ## Install necessary components
