@@ -7,10 +7,9 @@ TEMP=`basename $BASEURL`
 tar xzf $TEMP
 mv ${TEMP/.tar.gz/} ../
 TEMP=`readlink -f ../${TEMP/.tar.gz/}`
-ln -sf $TEMP Delphes
 ln -sf $TEMP ../Delphes2Flat/Delphes
 
-cd Delphes
+cd $TEMP
 ./configure
 make -j $(nproc)
 cd ..
