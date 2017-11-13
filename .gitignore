@@ -9,3 +9,4 @@
 *.pyc
 *.root
 *.h5
+*.gz
