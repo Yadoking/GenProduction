@@ -70,7 +70,7 @@ echo 'cluster_type = sge' >> $MG/input/mg5_configuration.txt
 echo 'cluster_size = 96' >> $MG/input/mg5_configuration.txt
 
 ## Write setup script
-echo > setup.shrc <<EOF
+echo > $MG/setup.shrc <<EOF
 #!/bin/bash
 
 source /opt/rh/devtoolset-4/enable 
@@ -79,3 +79,14 @@ source /opt/rh/python27/enable
 export PYTHONPATH=$MG/HEPTools/lhapdf6/lib64/python2.7/site-packages:$PYTHONPATH
 export LD_LIBRARY_PATH=$MG/HEPTools/lhapdf6/lib:$LD_LIBRARY_PATH
 EOF
+
+## First NLO generation just to compile packages (CutTools, IREGI, etc)
+cd $MG
+source setup.shrc
+bin/mg5_aMC <<EOF
+generate p p > t t~ [QCD]
+output _to_be_removed_
+EOF
+rm -rf _to_be_removed_
+
+echo "@@@@@@@@@@ DONE @@@@@@@@@@"
