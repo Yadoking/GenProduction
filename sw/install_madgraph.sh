@@ -20,8 +20,7 @@ fi
 ## Download packages
 [ -f `basename $MGURL` ] || wget $MGURL
 tar xzf `basename $MGURL`
-mv $MG ..
-MG=`readlink -f ../$MG`
+MG=`readlink -f $MG`
 
 cd $MG
 

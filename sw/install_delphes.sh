@@ -5,8 +5,7 @@ TEMP=`basename $BASEURL`
 
 [ -f $TEMP ] || wget $BASEURL
 tar xzf $TEMP
-mv ${TEMP/.tar.gz/} ../
-TEMP=`readlink -f ../${TEMP/.tar.gz/}`
+TEMP=`readlink -f ${TEMP/.tar.gz/}`
 ln -sf $TEMP ../Delphes2Flat/Delphes
 
 cd $TEMP
