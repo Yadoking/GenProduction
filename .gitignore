@@ -1,0 +1,11 @@
+*.d
+*.pcm
+*.so
+*_C_ACLiC_dict.*
+*_C_ACLiC_map.*
+*_C_ACLiC_linkdef.*
+*.png
+.*DS_Store
+*.pyc
+*.root
+*.h5
