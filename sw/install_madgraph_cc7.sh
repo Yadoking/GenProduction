@@ -1,7 +1,7 @@
 #!/bin/bash
 
 BASEURL="https://raw.githubusercontent.com/Yadoking/GenProduction/master"
-MGURL="wget -q https://launchpad.net/mg5amcnlo/2.0/2.6.x/+download/MG5_aMC_v2.6.3.2.tar.gz"
+MGURL="https://launchpad.net/mg5amcnlo/2.0/2.6.x/+download/MG5_aMC_v2.6.3.2.tar.gz"
 MG=MG5_aMC_v2_6_3_2
 WORKDIR=`pwd`
 
