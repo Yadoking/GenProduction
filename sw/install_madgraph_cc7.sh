@@ -25,9 +25,9 @@ echo "text_editor = vim" >> input/mg5_configuration.txt
 ## Install necessary components
 bin/mg5_aMC <<EOF
 install update
-install ninja
 install pythia8
 install collier
+install ninja
 EOF
 
 ## Download lhapdf6 PDFSet(s)
@@ -42,7 +42,6 @@ EOF
 
 ## First NLO generation just to compile packages (CutTools, IREGI, etc)
 cd $MG
-source setup.shrc
 bin/mg5_aMC <<EOF
 generate p p > t t~ [QCD]
 output _to_be_removed_
