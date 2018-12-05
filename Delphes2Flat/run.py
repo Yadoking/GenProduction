@@ -2,14 +2,21 @@
 
 import sys
 if len(sys.argv) < 3:
-    print "%s INPUT1.root INPUT2.root INPUT2.root ... OUTPUT_PREFIX"
+    print "%s INPUT1.root INPUT2.root INPUT2.root ... OUTPUT_PREFIX" % sys.argv[0]
     sys.exit(1)
 inputFiles = sys.argv[1:-1]
 prefix = sys.argv[-1]
 
 import os
+if not os.path.exists("delphes"):
+    os.system("""git clone https://github.com/delphes/delphes
+pushd delphes
+CMSSW_FWLITE_INCLUDE_PATH="" make -j
+popd
+""")
+
 from ROOT import *
-delphesPath = "Delphes"
+delphesPath = "delphes"
 gSystem.AddIncludePath('-I"%s"' % delphesPath)
 gSystem.AddDynamicPath(delphesPath)
 gSystem.AddLinkedLibs('-L"%s"' % delphesPath)
