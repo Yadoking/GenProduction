@@ -7,16 +7,8 @@ if len(sys.argv) < 3:
 inputFiles = sys.argv[1:-1]
 prefix = sys.argv[-1]
 
-import os
-if not os.path.exists("delphes"):
-    os.system("""git clone https://github.com/delphes/delphes
-pushd delphes
-CMSSW_FWLITE_INCLUDE_PATH="" make -j
-popd
-""")
-
 from ROOT import *
-delphesPath = "delphes"
+delphesPath = "Delphes"
 gSystem.AddIncludePath('-I"%s"' % delphesPath)
 gSystem.AddDynamicPath(delphesPath)
 gSystem.AddLinkedLibs('-L"%s"' % delphesPath)

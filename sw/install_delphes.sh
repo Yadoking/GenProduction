@@ -9,7 +9,7 @@ TEMP=`readlink -f ${TEMP/.tar.gz/}`
 ln -sf $TEMP ../Delphes2Flat/Delphes
 
 cd $TEMP
-./configure
-make -j $(nproc)
+#./configure
+CMSSW_FWLITE_INCLUDE_PATH="" make -j $(nproc)
 cd ..
 
