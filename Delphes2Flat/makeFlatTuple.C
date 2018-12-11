@@ -73,7 +73,7 @@ void makeFlatTuple(const std::string finName, const std::string foutName)
   unsigned short b_nGenJet;
   float b_GenJet_pt[GenJet_N], b_GenJet_eta[GenJet_N], b_GenJet_phi[GenJet_N], b_GenJet_m[GenJet_N];
   short b_GenJet_flav[GenJet_N];
-  float b_GenJet_bTag[GenJet_N];
+  int b_GenJet_partonIdx[GenJet_N];
 
   tree->Branch("run", &b_run, "run/s");
   tree->Branch("event", &b_event, "event/i");
@@ -133,7 +133,7 @@ void makeFlatTuple(const std::string finName, const std::string foutName)
   tree->Branch("GenJet_phi", b_GenJet_phi, "GenJet_phi[nGenJet]/F");
   tree->Branch("GenJet_m", b_GenJet_m, "GenJet_m[nGenJet]/F");
   tree->Branch("GenJet_flav", b_GenJet_flav, "GenJet_flav[nGenJet]/S");
-  tree->Branch("GenJet_partonIdx", b_GenJet_partonIdx, "GenJet_partonIdx[nGenJet]/F");
+  tree->Branch("GenJet_partonIdx", b_GenJet_partonIdx, "GenJet_partonIdx[nGenJet]/S");
 
   // Create chain of root trees
   TChain chain("Delphes");
@@ -347,7 +347,6 @@ void makeFlatTuple(const std::string finName, const std::string foutName)
           const TObject* obj = cons.At(j);
           if ( !obj ) continue;
 
-          //const GenParticle* p = dynamic_cast<const GenParticle*>(obj);
           const Track* track = dynamic_cast<const Track*>(obj);
           const Tower* tower = dynamic_cast<const Tower*>(obj);
           if ( track ) {
@@ -398,29 +397,22 @@ void makeFlatTuple(const std::string finName, const std::string foutName)
       b_GenJet_phi[b_nGenJet] = jet->Phi;
       b_GenJet_m[b_nGenJet] = jet->Mass;
       b_GenJet_flav[b_nGenJet] = jet->Flavor;
-      b_GenJet_bTag[b_nGenJet] = jet->BTag;
+      b_GenJet_partonIdx[b_nGenJet] = -1;
 
-      // Keep the subjet particles
+      // Loop over the constituents to find its origin
       TRefArray cons = jet->Constituents;
       for ( int j=0; j<cons.GetEntriesFast(); ++j ) {
-        //if ( b_nSubGenJet > SubGenJet_N ) break;
-
         const TObject* obj = cons.At(j);
         if ( !obj ) continue;
 
         const GenParticle* p = dynamic_cast<const GenParticle*>(obj);
-        if ( p ) {
-          //cout << p << ' ' << p->PID << endl;
-          /*b_SubGenJet_pt[b_nSubGenJet] = track->PT;
+        if ( !p ) continue;
+        //cout << p << ' ' << p->PID << endl;
+        /*b_SubGenJet_pt[b_nSubGenJet] = track->PT;
           b_SubGenJet_eta[b_nSubGenJet] = track->Eta;
           b_SubGenJet_phi[b_nSubGenJet] = track->Phi;
           b_SubGenJet_q[b_nSubGenJet] = track->Charge;
           b_SubGenJet_pdgId[b_nSubGenJet] = track->Charge*211;*/
-        }
-        else {
-          std::cout << obj->IsA()->GetName() << endl;
-          continue;
-        }
         //b_SubGenJet_jetIdx[b_nSubGenJet] = b_nGenJet;
         //++b_nSubGenJet;
       }
