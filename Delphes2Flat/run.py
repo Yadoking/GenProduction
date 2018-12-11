@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import sys
+import sys, os
 if len(sys.argv) < 3:
     print "%s INPUT1.root INPUT2.root INPUT2.root ... OUTPUT_PREFIX" % sys.argv[0]
     sys.exit(1)

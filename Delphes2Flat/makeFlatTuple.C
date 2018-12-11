@@ -11,6 +11,10 @@ R__LOAD_LIBRARY(libDelphes)
 #include <iostream>
 
 //------------------------------------------------------------------------------
+// Global options to switch on/off output branches
+const bool doSubJet = false;
+
+//------------------------------------------------------------------------------
 int getLast(TClonesArray* branch, const int iGen)
 {
   const GenParticle* p = (const GenParticle*)branch->At(iGen);
@@ -59,11 +63,11 @@ void makeFlatTuple(const std::string finName, const std::string foutName)
   short b_SubJet_q[SubJet_N], b_SubJet_pdgId[SubJet_N];
   unsigned short b_SubJet_jetIdx[SubJet_N];
 
-  const unsigned short GenParticle_N = 1000;
-  unsigned short b_nGenParticle;
-  float b_GenParticle_pt[GenParticle_N], b_GenParticle_eta[GenParticle_N], b_GenParticle_phi[GenParticle_N], b_GenParticle_m[GenParticle_N];
-  short b_GenParticle_pdgId[GenParticle_N], b_GenParticle_q3[GenParticle_N];
-  short b_GenParticle_mother[GenParticle_N], b_GenParticle_dau1[GenParticle_N], b_GenParticle_dau2[GenParticle_N];
+  const unsigned short GenParton_N = 1000;
+  unsigned short b_nGenParton;
+  float b_GenParton_pt[GenParton_N], b_GenParton_eta[GenParton_N], b_GenParton_phi[GenParton_N], b_GenParton_m[GenParton_N];
+  short b_GenParton_pdgId[GenParton_N], b_GenParton_q3[GenParton_N];
+  short b_GenParton_mother[GenParton_N], b_GenParton_dau1[GenParton_N], b_GenParton_dau2[GenParton_N];
 
   const unsigned short GenJet_N = 100;
   unsigned short b_nGenJet;
@@ -102,24 +106,26 @@ void makeFlatTuple(const std::string finName, const std::string foutName)
   tree->Branch("Jet_flav", b_Jet_flav, "Jet_flav[nJet]/S");
   tree->Branch("Jet_bTag", b_Jet_bTag, "Jet_bTag[nJet]/F");
 
-  tree->Branch("nSubJet", &b_nSubJet, "nSubJet/s");
-  tree->Branch("SubJet_pt", b_SubJet_pt, "SubJet_pt[nSubJet]/F");
-  tree->Branch("SubJet_eta", b_SubJet_eta, "SubJet_eta[nSubJet]/F");
-  tree->Branch("SubJet_phi", b_SubJet_phi, "SubJet_phi[nSubJet]/F");
-  tree->Branch("SubJet_q", b_SubJet_q, "SubJet_q[nSubJet]/S");
-  tree->Branch("SubJet_pdgId", b_SubJet_pdgId, "SubJet_pdgId[nSubJet]/S");
-  tree->Branch("SubJet_jetIdx", b_SubJet_jetIdx, "SubJet_jetIdx[nSubJet]/S");
+  if ( doSubJet ) {
+    tree->Branch("nSubJet", &b_nSubJet, "nSubJet/s");
+    tree->Branch("SubJet_pt", b_SubJet_pt, "SubJet_pt[nSubJet]/F");
+    tree->Branch("SubJet_eta", b_SubJet_eta, "SubJet_eta[nSubJet]/F");
+    tree->Branch("SubJet_phi", b_SubJet_phi, "SubJet_phi[nSubJet]/F");
+    tree->Branch("SubJet_q", b_SubJet_q, "SubJet_q[nSubJet]/S");
+    tree->Branch("SubJet_pdgId", b_SubJet_pdgId, "SubJet_pdgId[nSubJet]/S");
+    tree->Branch("SubJet_jetIdx", b_SubJet_jetIdx, "SubJet_jetIdx[nSubJet]/S");
+  }
 
-  tree->Branch("nGenParticle", &b_nGenParticle, "nGenParticle/s");
-  tree->Branch("GenParticle_pt", b_GenParticle_pt, "GenParticle_pt[nGenParticle]/F");
-  tree->Branch("GenParticle_eta", b_GenParticle_eta, "GenParticle_eta[nGenParticle]/F");
-  tree->Branch("GenParticle_phi", b_GenParticle_phi, "GenParticle_phi[nGenParticle]/F");
-  tree->Branch("GenParticle_m", b_GenParticle_m, "GenParticle_m[nGenParticle]/F");
-  tree->Branch("GenParticle_pdgId", b_GenParticle_pdgId, "GenParticle_pdgId[nGenParticle]/S");
-  tree->Branch("GenParticle_q3", b_GenParticle_q3, "GenParticle_q3[nGenParticle]/S");
-  tree->Branch("GenParticle_mother", b_GenParticle_mother, "GenParticle_mother[nGenParticle]/S");
-  tree->Branch("GenParticle_dau1", b_GenParticle_dau1, "GenParticle_dau1[nGenParticle]/S");
-  tree->Branch("GenParticle_dau2", b_GenParticle_dau2, "GenParticle_dau2[nGenParticle]/S");
+  tree->Branch("nGenParton", &b_nGenParton, "nGenParton/s");
+  tree->Branch("GenParton_pt", b_GenParton_pt, "GenParton_pt[nGenParton]/F");
+  tree->Branch("GenParton_eta", b_GenParton_eta, "GenParton_eta[nGenParton]/F");
+  tree->Branch("GenParton_phi", b_GenParton_phi, "GenParton_phi[nGenParton]/F");
+  tree->Branch("GenParton_m", b_GenParton_m, "GenParton_m[nGenParton]/F");
+  tree->Branch("GenParton_pdgId", b_GenParton_pdgId, "GenParton_pdgId[nGenParton]/S");
+  tree->Branch("GenParton_q3", b_GenParton_q3, "GenParton_q3[nGenParton]/S");
+  tree->Branch("GenParton_mother", b_GenParton_mother, "GenParton_mother[nGenParton]/S");
+  tree->Branch("GenParton_dau1", b_GenParton_dau1, "GenParton_dau1[nGenParton]/S");
+  tree->Branch("GenParton_dau2", b_GenParton_dau2, "GenParton_dau2[nGenParton]/S");
 
   tree->Branch("nGenJet", &b_nGenJet, "nGenJet/s");
   tree->Branch("GenJet_pt", b_GenJet_pt, "GenJet_pt[nGenJet]/F");
@@ -127,7 +133,7 @@ void makeFlatTuple(const std::string finName, const std::string foutName)
   tree->Branch("GenJet_phi", b_GenJet_phi, "GenJet_phi[nGenJet]/F");
   tree->Branch("GenJet_m", b_GenJet_m, "GenJet_m[nGenJet]/F");
   tree->Branch("GenJet_flav", b_GenJet_flav, "GenJet_flav[nGenJet]/S");
-  tree->Branch("GenJet_bTag", b_GenJet_bTag, "GenJet_bTag[nGenJet]/F");
+  tree->Branch("GenJet_partonIdx", b_GenJet_partonIdx, "GenJet_partonIdx[nGenJet]/F");
 
   // Create chain of root trees
   TChain chain("Delphes");
@@ -160,8 +166,8 @@ void makeFlatTuple(const std::string finName, const std::string foutName)
     b_weight = event->Weight;
 
     // Build gen particle collection, for the ttbar decays
-    std::vector<std::vector<int> > GenParticle_topDaus;
-    b_nGenParticle = 0;
+    std::vector<std::vector<int> > GenParton_topDaus;
+    b_nGenParton = 0;
     for ( int i=0; i<branchGen->GetEntries(); ++i ) {
       const GenParticle* p = (const GenParticle*)branchGen->At(i);
       const int pid = p->PID, absId = abs(p->PID);
@@ -175,47 +181,47 @@ void makeFlatTuple(const std::string finName, const std::string foutName)
       }
       if ( isDupl ) continue;
 
-      GenParticle_topDaus.emplace_back();
-      for ( int j=p->D1; j<=p->D2; ++j ) GenParticle_topDaus.back().push_back(j);
+      GenParton_topDaus.emplace_back();
+      for ( int j=p->D1; j<=p->D2; ++j ) GenParton_topDaus.back().push_back(j);
 
       // Fill top quarks
-      b_GenParticle_pt[b_nGenParticle] = p->PT;
-      b_GenParticle_eta[b_nGenParticle] = p->Eta;
-      b_GenParticle_phi[b_nGenParticle] = p->Phi;
-      b_GenParticle_m[b_nGenParticle] = p->Mass;
-      b_GenParticle_pdgId[b_nGenParticle] = p->PID;
-      b_GenParticle_q3[b_nGenParticle] = p->Charge*3;
-      b_GenParticle_dau1[b_nGenParticle] = b_GenParticle_dau2[b_nGenParticle] = -1;
-      b_GenParticle_mother[b_nGenParticle] = -1;
+      b_GenParton_pt[b_nGenParton] = p->PT;
+      b_GenParton_eta[b_nGenParton] = p->Eta;
+      b_GenParton_phi[b_nGenParton] = p->Phi;
+      b_GenParton_m[b_nGenParton] = p->Mass;
+      b_GenParton_pdgId[b_nGenParton] = p->PID;
+      b_GenParton_q3[b_nGenParton] = p->Charge*3;
+      b_GenParton_dau1[b_nGenParton] = b_GenParton_dau2[b_nGenParton] = -1;
+      b_GenParton_mother[b_nGenParton] = -1;
 
-      ++b_nGenParticle;
-      if ( b_nGenParticle >= GenParticle_N ) break;
+      ++b_nGenParton;
+      if ( b_nGenParton >= GenParton_N ) break;
     }
     
     std::vector<int> dauIdx;
-    for ( int i=0, n=GenParticle_topDaus.size(); i<n; ++i ) {
-      const auto& dauIdxs = GenParticle_topDaus.at(i);
+    for ( int i=0, n=GenParton_topDaus.size(); i<n; ++i ) {
+      const auto& dauIdxs = GenParton_topDaus.at(i);
       if ( dauIdxs.empty() ) continue; // no daughters
 
-      b_GenParticle_dau1[i] = b_nGenParticle;
-      b_GenParticle_dau2[i] = b_nGenParticle+dauIdxs.size()-1;
+      b_GenParton_dau1[i] = b_nGenParton;
+      b_GenParton_dau2[i] = b_nGenParton+dauIdxs.size()-1;
 
       for ( auto j : dauIdxs ) {
         const GenParticle* dau = (const GenParticle*)branchGen->At(j);
 
         // Fill top quark daughters
-        b_GenParticle_pt[b_nGenParticle] = dau->PT;
-        b_GenParticle_eta[b_nGenParticle] = dau->Eta;
-        b_GenParticle_phi[b_nGenParticle] = dau->Phi;
-        b_GenParticle_m[b_nGenParticle] = dau->Mass;
-        b_GenParticle_pdgId[b_nGenParticle] = dau->PID;
-        b_GenParticle_q3[b_nGenParticle] = dau->Charge*3;
-        b_GenParticle_dau1[b_nGenParticle] = b_GenParticle_dau2[b_nGenParticle] = -1;
-        b_GenParticle_mother[b_nGenParticle] = i;
+        b_GenParton_pt[b_nGenParton] = dau->PT;
+        b_GenParton_eta[b_nGenParton] = dau->Eta;
+        b_GenParton_phi[b_nGenParton] = dau->Phi;
+        b_GenParton_m[b_nGenParton] = dau->Mass;
+        b_GenParton_pdgId[b_nGenParton] = dau->PID;
+        b_GenParton_q3[b_nGenParton] = dau->Charge*3;
+        b_GenParton_dau1[b_nGenParton] = b_GenParton_dau2[b_nGenParton] = -1;
+        b_GenParton_mother[b_nGenParton] = i;
 
-        const int iDau = b_nGenParticle;
-        ++b_nGenParticle;
-        if ( b_nGenParticle >= GenParticle_N ) break;
+        const int iDau = b_nGenParton;
+        ++b_nGenParton;
+        if ( b_nGenParton >= GenParton_N ) break;
 
         if ( abs(dau->PID) < 23 or abs(dau->PID) > 25 ) continue;
         if ( dau->D1 == -1 or dau->D2 == -1 ) continue;
@@ -226,20 +232,20 @@ void makeFlatTuple(const std::string finName, const std::string foutName)
           const GenParticle* gdau = (const GenParticle*)branchGen->At(k);
 
           // Fill W/Z/H daughters
-          b_GenParticle_pt[b_nGenParticle] = gdau->PT;
-          b_GenParticle_eta[b_nGenParticle] = gdau->Eta;
-          b_GenParticle_phi[b_nGenParticle] = gdau->Phi;
-          b_GenParticle_m[b_nGenParticle] = gdau->Mass;
-          b_GenParticle_pdgId[b_nGenParticle] = gdau->PID;
-          b_GenParticle_q3[b_nGenParticle] = gdau->Charge*3;
-          b_GenParticle_dau1[b_nGenParticle] = b_GenParticle_dau2[b_nGenParticle] = -1;
-          b_GenParticle_mother[b_nGenParticle] = iDau;
+          b_GenParton_pt[b_nGenParton] = gdau->PT;
+          b_GenParton_eta[b_nGenParton] = gdau->Eta;
+          b_GenParton_phi[b_nGenParton] = gdau->Phi;
+          b_GenParton_m[b_nGenParton] = gdau->Mass;
+          b_GenParton_pdgId[b_nGenParton] = gdau->PID;
+          b_GenParton_q3[b_nGenParton] = gdau->Charge*3;
+          b_GenParton_dau1[b_nGenParton] = b_GenParton_dau2[b_nGenParton] = -1;
+          b_GenParton_mother[b_nGenParton] = iDau;
 
           ++ngdau;
-          ++b_nGenParticle;
-          if ( b_nGenParticle >= GenParticle_N ) break;
+          ++b_nGenParton;
+          if ( b_nGenParton >= GenParton_N ) break;
 
-          const int iGdau = b_nGenParticle;
+          const int iGdau = b_nGenParton;
           // For the tau decays
           if ( abs(gdau->PID) != 15 ) continue;
           if ( gdau->D1 == -1 or gdau->D2 == -1 ) continue;
@@ -252,29 +258,29 @@ void makeFlatTuple(const std::string finName, const std::string foutName)
             if ( absId < 11 or absId >= 15 ) continue;
 
             // Fill W/Z/H daughters
-            b_GenParticle_pt[b_nGenParticle] = ggdau->PT;
-            b_GenParticle_eta[b_nGenParticle] = ggdau->Eta;
-            b_GenParticle_phi[b_nGenParticle] = ggdau->Phi;
-            b_GenParticle_m[b_nGenParticle] = ggdau->Mass;
-            b_GenParticle_pdgId[b_nGenParticle] = ggdau->PID;
-            b_GenParticle_q3[b_nGenParticle] = ggdau->Charge*3;
-            b_GenParticle_dau1[b_nGenParticle] = b_GenParticle_dau2[b_nGenParticle] = -1;
-            b_GenParticle_mother[b_nGenParticle] = iGdau;
+            b_GenParton_pt[b_nGenParton] = ggdau->PT;
+            b_GenParton_eta[b_nGenParton] = ggdau->Eta;
+            b_GenParton_phi[b_nGenParton] = ggdau->Phi;
+            b_GenParton_m[b_nGenParton] = ggdau->Mass;
+            b_GenParton_pdgId[b_nGenParton] = ggdau->PID;
+            b_GenParton_q3[b_nGenParton] = ggdau->Charge*3;
+            b_GenParton_dau1[b_nGenParton] = b_GenParton_dau2[b_nGenParton] = -1;
+            b_GenParton_mother[b_nGenParton] = iGdau;
 
             ++nggdau;
-            ++b_nGenParticle;
-            if ( b_nGenParticle >= GenParticle_N ) break;
+            ++b_nGenParton;
+            if ( b_nGenParton >= GenParton_N ) break;
           }
-          b_GenParticle_dau1[iGdau] = iGdau+1;
-          b_GenParticle_dau2[iGdau] = iGdau+nggdau;
-          if ( b_nGenParticle >= GenParticle_N ) break;
+          b_GenParton_dau1[iGdau] = iGdau+1;
+          b_GenParton_dau2[iGdau] = iGdau+nggdau;
+          if ( b_nGenParton >= GenParton_N ) break;
         }
-        b_GenParticle_dau1[iDau] = iDau+1;
-        b_GenParticle_dau2[iDau] = iDau+ngdau;
+        b_GenParton_dau1[iDau] = iDau+1;
+        b_GenParton_dau2[iDau] = iDau+ngdau;
         
-        if ( b_nGenParticle >= GenParticle_N ) break;
+        if ( b_nGenParton >= GenParton_N ) break;
       }
-      if ( b_nGenParticle >= GenParticle_N ) break;
+      if ( b_nGenParton >= GenParton_N ) break;
     }
 
     if ( branchMET->GetEntries() > 0 ) {
@@ -332,48 +338,50 @@ void makeFlatTuple(const std::string finName, const std::string foutName)
       b_Jet_flav[b_nJet] = jet->Flavor;
       b_Jet_bTag[b_nJet] = jet->BTag;
 
-      // Keep the subjet particles
-      TRefArray cons = jet->Constituents;
-      for ( int j=0; j<cons.GetEntriesFast(); ++j ) {
-        if ( b_nSubJet > SubJet_N ) break;
+      if ( doSubJet ) {
+        // Keep the subjet particles
+        TRefArray cons = jet->Constituents;
+        for ( int j=0; j<cons.GetEntriesFast(); ++j ) {
+          if ( b_nSubJet > SubJet_N ) break;
 
-        const TObject* obj = cons.At(j);
-        if ( !obj ) continue;
+          const TObject* obj = cons.At(j);
+          if ( !obj ) continue;
 
-        //const GenParticle* p = dynamic_cast<const GenParticle*>(obj);
-        const Track* track = dynamic_cast<const Track*>(obj);
-        const Tower* tower = dynamic_cast<const Tower*>(obj);
-        if ( track ) {
-          b_SubJet_pt[b_nSubJet] = track->PT;
-          b_SubJet_eta[b_nSubJet] = track->Eta;
-          b_SubJet_phi[b_nSubJet] = track->Phi;
-          b_SubJet_q[b_nSubJet] = track->Charge;
-          //b_SubJet_pdgId[b_nSubJet] = track->Charge*211;
-          const GenParticle* p = dynamic_cast<const GenParticle*>(track->Particle.GetObject());
-          b_SubJet_pdgId[b_nSubJet] = p->PID;
-        }
-        else if ( tower ) {
-          b_SubJet_pt[b_nSubJet] = tower->ET;
-          b_SubJet_eta[b_nSubJet] = tower->Eta;
-          b_SubJet_phi[b_nSubJet] = tower->Phi;
-          b_SubJet_q[b_nSubJet] = 0;
-          //const bool isPhoton = ( tower->Eem > tower->Ehad ); // Crude estimation
-          //if ( isPhoton ) b_SubJet_pdgId[b_nSubJet] = 22; // photons
-          //else b_SubJet_pdgId[b_nSubJet] = 2112; // set as neutron
-          int nPhoton = 0;
-          TRefArray ps = tower->Particles;
-          for ( int k=0; k<ps.GetEntries(); ++k ) {
-            const GenParticle* p = dynamic_cast<const GenParticle*>(ps.At(k));
-            if ( p->PID == 22 ) ++nPhoton;
+          //const GenParticle* p = dynamic_cast<const GenParticle*>(obj);
+          const Track* track = dynamic_cast<const Track*>(obj);
+          const Tower* tower = dynamic_cast<const Tower*>(obj);
+          if ( track ) {
+            b_SubJet_pt[b_nSubJet] = track->PT;
+            b_SubJet_eta[b_nSubJet] = track->Eta;
+            b_SubJet_phi[b_nSubJet] = track->Phi;
+            b_SubJet_q[b_nSubJet] = track->Charge;
+            //b_SubJet_pdgId[b_nSubJet] = track->Charge*211;
+            const GenParticle* p = dynamic_cast<const GenParticle*>(track->Particle.GetObject());
+            b_SubJet_pdgId[b_nSubJet] = p->PID;
           }
-          b_SubJet_pdgId[b_nSubJet] = nPhoton > 0 ? 22 : 2112; // set as neutron if no photon found in this tower
+          else if ( tower ) {
+            b_SubJet_pt[b_nSubJet] = tower->ET;
+            b_SubJet_eta[b_nSubJet] = tower->Eta;
+            b_SubJet_phi[b_nSubJet] = tower->Phi;
+            b_SubJet_q[b_nSubJet] = 0;
+            //const bool isPhoton = ( tower->Eem > tower->Ehad ); // Crude estimation
+            //if ( isPhoton ) b_SubJet_pdgId[b_nSubJet] = 22; // photons
+            //else b_SubJet_pdgId[b_nSubJet] = 2112; // set as neutron
+            int nPhoton = 0;
+            TRefArray ps = tower->Particles;
+            for ( int k=0; k<ps.GetEntries(); ++k ) {
+              const GenParticle* p = dynamic_cast<const GenParticle*>(ps.At(k));
+              if ( p->PID == 22 ) ++nPhoton;
+            }
+            b_SubJet_pdgId[b_nSubJet] = nPhoton > 0 ? 22 : 2112; // set as neutron if no photon found in this tower
+          }
+          else {
+            std::cout << obj->IsA()->GetName() << endl;
+            continue;
+          }
+          b_SubJet_jetIdx[b_nSubJet] = b_nJet;
+          ++b_nSubJet;
         }
-        else {
-          std::cout << obj->IsA()->GetName() << endl;
-          continue;
-        }
-        b_SubJet_jetIdx[b_nSubJet] = b_nJet;
-        ++b_nSubJet;
       }
 
       ++b_nJet;
