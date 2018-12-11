@@ -53,17 +53,23 @@ void makeFlatTuple(const std::string finName, const std::string foutName)
   short b_Jet_flav[Jet_N];
   float b_Jet_bTag[Jet_N];
 
+  const unsigned short SubJet_N = 10000;
+  unsigned short b_nSubJet;
+  float b_SubJet_pt[SubJet_N], b_SubJet_eta[SubJet_N], b_SubJet_phi[SubJet_N];
+  short b_SubJet_q[SubJet_N], b_SubJet_pdgId[SubJet_N];
+  unsigned short b_SubJet_jetIdx[SubJet_N];
+
   const unsigned short GenParticle_N = 1000;
   unsigned short b_nGenParticle;
   float b_GenParticle_pt[GenParticle_N], b_GenParticle_eta[GenParticle_N], b_GenParticle_phi[GenParticle_N], b_GenParticle_m[GenParticle_N];
   short b_GenParticle_pdgId[GenParticle_N], b_GenParticle_q3[GenParticle_N];
   short b_GenParticle_mother[GenParticle_N], b_GenParticle_dau1[GenParticle_N], b_GenParticle_dau2[GenParticle_N];
 
-  const unsigned short SubJet_N = 10000;
-  unsigned short b_nSubJet;
-  float b_SubJet_pt[SubJet_N], b_SubJet_eta[SubJet_N], b_SubJet_phi[SubJet_N];
-  short b_SubJet_q[SubJet_N], b_SubJet_pdgId[SubJet_N];
-  unsigned short b_SubJet_jetIdx[SubJet_N];
+  const unsigned short GenJet_N = 100;
+  unsigned short b_nGenJet;
+  float b_GenJet_pt[GenJet_N], b_GenJet_eta[GenJet_N], b_GenJet_phi[GenJet_N], b_GenJet_m[GenJet_N];
+  short b_GenJet_flav[GenJet_N];
+  float b_GenJet_bTag[GenJet_N];
 
   tree->Branch("run", &b_run, "run/s");
   tree->Branch("event", &b_event, "event/i");
@@ -96,6 +102,14 @@ void makeFlatTuple(const std::string finName, const std::string foutName)
   tree->Branch("Jet_flav", b_Jet_flav, "Jet_flav[nJet]/S");
   tree->Branch("Jet_bTag", b_Jet_bTag, "Jet_bTag[nJet]/F");
 
+  tree->Branch("nSubJet", &b_nSubJet, "nSubJet/s");
+  tree->Branch("SubJet_pt", b_SubJet_pt, "SubJet_pt[nSubJet]/F");
+  tree->Branch("SubJet_eta", b_SubJet_eta, "SubJet_eta[nSubJet]/F");
+  tree->Branch("SubJet_phi", b_SubJet_phi, "SubJet_phi[nSubJet]/F");
+  tree->Branch("SubJet_q", b_SubJet_q, "SubJet_q[nSubJet]/S");
+  tree->Branch("SubJet_pdgId", b_SubJet_pdgId, "SubJet_pdgId[nSubJet]/S");
+  tree->Branch("SubJet_jetIdx", b_SubJet_jetIdx, "SubJet_jetIdx[nSubJet]/S");
+
   tree->Branch("nGenParticle", &b_nGenParticle, "nGenParticle/s");
   tree->Branch("GenParticle_pt", b_GenParticle_pt, "GenParticle_pt[nGenParticle]/F");
   tree->Branch("GenParticle_eta", b_GenParticle_eta, "GenParticle_eta[nGenParticle]/F");
@@ -107,13 +121,13 @@ void makeFlatTuple(const std::string finName, const std::string foutName)
   tree->Branch("GenParticle_dau1", b_GenParticle_dau1, "GenParticle_dau1[nGenParticle]/S");
   tree->Branch("GenParticle_dau2", b_GenParticle_dau2, "GenParticle_dau2[nGenParticle]/S");
 
-  tree->Branch("nSubJet", &b_nSubJet, "nSubJet/s");
-  tree->Branch("SubJet_pt", b_SubJet_pt, "SubJet_pt[nSubJet]/F");
-  tree->Branch("SubJet_eta", b_SubJet_eta, "SubJet_eta[nSubJet]/F");
-  tree->Branch("SubJet_phi", b_SubJet_phi, "SubJet_phi[nSubJet]/F");
-  tree->Branch("SubJet_q", b_SubJet_q, "SubJet_q[nSubJet]/S");
-  tree->Branch("SubJet_pdgId", b_SubJet_pdgId, "SubJet_pdgId[nSubJet]/S");
-  tree->Branch("SubJet_jetIdx", b_SubJet_jetIdx, "SubJet_jetIdx[nSubJet]/S");
+  tree->Branch("nGenJet", &b_nGenJet, "nGenJet/s");
+  tree->Branch("GenJet_pt", b_GenJet_pt, "GenJet_pt[nGenJet]/F");
+  tree->Branch("GenJet_eta", b_GenJet_eta, "GenJet_eta[nGenJet]/F");
+  tree->Branch("GenJet_phi", b_GenJet_phi, "GenJet_phi[nGenJet]/F");
+  tree->Branch("GenJet_m", b_GenJet_m, "GenJet_m[nGenJet]/F");
+  tree->Branch("GenJet_flav", b_GenJet_flav, "GenJet_flav[nGenJet]/S");
+  tree->Branch("GenJet_bTag", b_GenJet_bTag, "GenJet_bTag[nGenJet]/F");
 
   // Create chain of root trees
   TChain chain("Delphes");
@@ -130,6 +144,7 @@ void makeFlatTuple(const std::string finName, const std::string foutName)
   TClonesArray *branchMuon = treeReader->UseBranch("Muon");
   TClonesArray *branchElectron = treeReader->UseBranch("Electron");
   TClonesArray *branchJet = treeReader->UseBranch("Jet");
+  TClonesArray *branchGenJet = treeReader->UseBranch("GenJet");
   TClonesArray *branchEFlowTrack = treeReader->UseBranch("EFlowTrack");
   TClonesArray *branchEFlowPhoton = treeReader->UseBranch("EFlowPhoton");
   TClonesArray *branchEFlowNeutralHadron = treeReader->UseBranch("EFlowNeutralHadron");
@@ -176,6 +191,7 @@ void makeFlatTuple(const std::string finName, const std::string foutName)
       ++b_nGenParticle;
       if ( b_nGenParticle >= GenParticle_N ) break;
     }
+    
     std::vector<int> dauIdx;
     for ( int i=0, n=GenParticle_topDaus.size(); i<n; ++i ) {
       const auto& dauIdxs = GenParticle_topDaus.at(i);
@@ -332,16 +348,25 @@ void makeFlatTuple(const std::string finName, const std::string foutName)
           b_SubJet_eta[b_nSubJet] = track->Eta;
           b_SubJet_phi[b_nSubJet] = track->Phi;
           b_SubJet_q[b_nSubJet] = track->Charge;
-          b_SubJet_pdgId[b_nSubJet] = track->Charge*211;
+          //b_SubJet_pdgId[b_nSubJet] = track->Charge*211;
+          const GenParticle* p = dynamic_cast<const GenParticle*>(track->Particle.GetObject());
+          b_SubJet_pdgId[b_nSubJet] = p->PID;
         }
         else if ( tower ) {
           b_SubJet_pt[b_nSubJet] = tower->ET;
           b_SubJet_eta[b_nSubJet] = tower->Eta;
           b_SubJet_phi[b_nSubJet] = tower->Phi;
           b_SubJet_q[b_nSubJet] = 0;
-          const bool isPhoton = ( tower->Eem > tower->Ehad ); // Crude estimation
-          if ( isPhoton ) b_SubJet_pdgId[b_nSubJet] = 22; // photons
-          else b_SubJet_pdgId[b_nSubJet] = 2112; // set as neutron
+          //const bool isPhoton = ( tower->Eem > tower->Ehad ); // Crude estimation
+          //if ( isPhoton ) b_SubJet_pdgId[b_nSubJet] = 22; // photons
+          //else b_SubJet_pdgId[b_nSubJet] = 2112; // set as neutron
+          int nPhoton = 0;
+          TRefArray ps = tower->Particles;
+          for ( int k=0; k<ps.GetEntries(); ++k ) {
+            const GenParticle* p = dynamic_cast<const GenParticle*>(ps.At(k));
+            if ( p->PID == 22 ) ++nPhoton;
+          }
+          b_SubJet_pdgId[b_nSubJet] = nPhoton > 0 ? 22 : 2112; // set as neutron if no photon found in this tower
         }
         else {
           std::cout << obj->IsA()->GetName() << endl;
@@ -353,6 +378,47 @@ void makeFlatTuple(const std::string finName, const std::string foutName)
 
       ++b_nJet;
       if ( b_nJet >= Jet_N ) break;
+    }
+
+    b_nGenJet = 0; //b_nSubGenJet = 0;
+    for ( int i=0; i<branchGenJet->GetEntries(); ++i ) {
+      const Jet* jet = (const Jet*) branchGenJet->At(i);
+      //const TLorentzVector p4 = jet->P4();
+
+      b_GenJet_pt[b_nGenJet] = jet->PT;
+      b_GenJet_eta[b_nGenJet] = jet->Eta;
+      b_GenJet_phi[b_nGenJet] = jet->Phi;
+      b_GenJet_m[b_nGenJet] = jet->Mass;
+      b_GenJet_flav[b_nGenJet] = jet->Flavor;
+      b_GenJet_bTag[b_nGenJet] = jet->BTag;
+
+      // Keep the subjet particles
+      TRefArray cons = jet->Constituents;
+      for ( int j=0; j<cons.GetEntriesFast(); ++j ) {
+        //if ( b_nSubGenJet > SubGenJet_N ) break;
+
+        const TObject* obj = cons.At(j);
+        if ( !obj ) continue;
+
+        const GenParticle* p = dynamic_cast<const GenParticle*>(obj);
+        if ( p ) {
+          //cout << p << ' ' << p->PID << endl;
+          /*b_SubGenJet_pt[b_nSubGenJet] = track->PT;
+          b_SubGenJet_eta[b_nSubGenJet] = track->Eta;
+          b_SubGenJet_phi[b_nSubGenJet] = track->Phi;
+          b_SubGenJet_q[b_nSubGenJet] = track->Charge;
+          b_SubGenJet_pdgId[b_nSubGenJet] = track->Charge*211;*/
+        }
+        else {
+          std::cout << obj->IsA()->GetName() << endl;
+          continue;
+        }
+        //b_SubGenJet_jetIdx[b_nSubGenJet] = b_nGenJet;
+        //++b_nSubGenJet;
+      }
+
+      ++b_nGenJet;
+      if ( b_nGenJet >= GenJet_N ) break;
     }
 
     tree->Fill();
