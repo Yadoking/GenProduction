@@ -13,6 +13,7 @@ R__LOAD_LIBRARY(libDelphes)
 //------------------------------------------------------------------------------
 // Global options to switch on/off output branches
 const bool doSubJet = false;
+const bool doPrintDebug = false;
 
 //------------------------------------------------------------------------------
 int getLast(TClonesArray* branch, const int iGen)
@@ -27,23 +28,19 @@ int getLast(TClonesArray* branch, const int iGen)
   return iGen;
 }
 
-std::set<const GenParticle*> findPartonAncestors(const GenParticle* p, const TClonesArray* branchGen,
-                                                 const std::map<const GenParticle*, int>& dauPtrToIdx)
+void findPartonAncestors(const GenParticle* p, const TClonesArray* branchGen,
+                         const std::map<const GenParticle*, int>& dauPtrToIdx,
+                         std::set<const GenParticle*>& matches)
 {
-  std::set<const GenParticle*> matches;
+  if ( p == nullptr or p->M1 == -1 ) return;
 
-  if ( p == nullptr or p->M1 == -1 ) return matches;
   for ( int i=p->M1, n=std::max(p->M1, p->M2); i<=n; ++i ) {
     const GenParticle* mo = (const GenParticle*)branchGen->At(i);
     auto match = dauPtrToIdx.find(mo);
-    if ( match != dauPtrToIdx.end() ) matches.insert(match->first);
-    else {
-      auto matches2 = findPartonAncestors(mo, branchGen, dauPtrToIdx);
-      matches.insert(matches2.begin(), matches2.end());
-    }
-  }
 
-  return matches;
+    if ( match != dauPtrToIdx.end() ) matches.insert(match->first);
+    else findPartonAncestors(mo, branchGen, dauPtrToIdx, matches);
+  }
 }
 
 void makeFlatTuple(const std::string finName, const std::string foutName)
@@ -75,7 +72,7 @@ void makeFlatTuple(const std::string finName, const std::string foutName)
   float b_Jet_pt[Jet_N], b_Jet_eta[Jet_N], b_Jet_phi[Jet_N], b_Jet_m[Jet_N];
   short b_Jet_flav[Jet_N];
   float b_Jet_bTag[Jet_N];
-  int b_Jet_partonIdx[Jet_N];
+  short b_Jet_partonIdx[Jet_N];
 
   const unsigned short SubJet_N = 10000;
   unsigned short b_nSubJet;
@@ -92,7 +89,7 @@ void makeFlatTuple(const std::string finName, const std::string foutName)
   const unsigned short GenJet_N = 100;
   unsigned short b_nGenJet;
   float b_GenJet_pt[GenJet_N], b_GenJet_eta[GenJet_N], b_GenJet_phi[GenJet_N], b_GenJet_m[GenJet_N];
-  int b_GenJet_partonIdx[GenJet_N];
+  short b_GenJet_partonIdx[GenJet_N];
 
   tree->Branch("run", &b_run, "run/s");
   tree->Branch("event", &b_event, "event/i");
@@ -363,16 +360,19 @@ void makeFlatTuple(const std::string finName, const std::string foutName)
 
       // Keep the subjet particles
       TRefArray cons = jet->Constituents;
+      std::set<const GenParticle*> matches;
       for ( int j=0; j<cons.GetEntriesFast(); ++j ) {
         if ( b_nSubJet > SubJet_N ) break;
 
         const TObject* obj = cons.At(j);
         if ( !obj ) continue;
 
+
         const Track* track = dynamic_cast<const Track*>(obj);
         const Tower* tower = dynamic_cast<const Tower*>(obj);
         if ( track ) {
           const GenParticle* p = dynamic_cast<const GenParticle*>(track->Particle.GetObject());
+          findPartonAncestors(p, branchGen, dauPtrToIdx, matches);
 
           if ( doSubJet ) {
             b_SubJet_pt[b_nSubJet] = track->PT;
@@ -382,16 +382,6 @@ void makeFlatTuple(const std::string finName, const std::string foutName)
             //b_SubJet_pdgId[b_nSubJet] = track->Charge*211;
             b_SubJet_pdgId[b_nSubJet] = p->PID;
           }
-
-          std::set<const GenParticle*> matched = findPartonAncestors(p, branchGen, dauPtrToIdx);
-          if ( matched.empty() ) continue;
-          if ( matched.size() > 2 ) {
-            cout << "Multiple matches found, jet" << i << ", dau" << j << ", nMatch=" << matched.size() << endl;
-            for ( auto match : matched ) {
-              cout << "   " << match->PID << ' ' << endl;
-            }
-          }
-          b_Jet_partonIdx[b_nJet] = dauPtrToIdx[*matched.begin()];
         }
         else if ( tower ) {
           if ( doSubJet ) {
@@ -407,17 +397,9 @@ void makeFlatTuple(const std::string finName, const std::string foutName)
           TRefArray ps = tower->Particles;
           for ( int k=0; k<ps.GetEntries(); ++k ) {
             const GenParticle* p = dynamic_cast<const GenParticle*>(ps.At(k));
-            if ( p->PID == 22 ) ++nPhoton;
+            findPartonAncestors(p, branchGen, dauPtrToIdx, matches);
 
-            std::set<const GenParticle*> matched = findPartonAncestors(p, branchGen, dauPtrToIdx);
-            if ( matched.empty() ) continue;
-            if ( matched.size() > 2 ) {
-              cout << "Multiple matches found, jet" << i << ", dau" << j << ", nMatch=" << matched.size() << endl;
-              for ( auto match : matched ) {
-                cout << "   " << match->PID << ' ' << endl;
-              }
-            }
-            b_Jet_partonIdx[b_nJet] = dauPtrToIdx[*matched.begin()];
+            if ( p->PID == 22 ) ++nPhoton;
           }
           if ( doSubJet ) {
             b_SubJet_pdgId[b_nSubJet] = nPhoton > 0 ? 22 : 2112; // set as neutron if no photon found in this tower
@@ -427,9 +409,44 @@ void makeFlatTuple(const std::string finName, const std::string foutName)
           std::cout << obj->IsA()->GetName() << endl;
           continue;
         }
+
         if ( doSubJet ) {
           b_SubJet_jetIdx[b_nSubJet] = b_nJet;
           ++b_nSubJet;
+        }
+      }
+
+      double dR0 = 1e9;
+      TLorentzVector jetLVec;
+      jetLVec.SetPtEtaPhiM(b_Jet_pt[i], b_Jet_eta[i], b_Jet_phi[i], b_Jet_m[i]);
+      for ( auto p : matches ) {
+        const int idx1 = dauPtrToIdx[p];
+        const int dau1 = b_GenParton_dau1[idx1];
+        if ( dau1 != -1 ) continue;
+        const int pdgId = b_GenParton_pdgId[idx1];
+        if ( abs(pdgId) > 5 ) continue; // match quarks only
+
+        const int idx0 = b_Jet_partonIdx[b_nJet];
+        if ( idx0 == -1 ) {
+          TLorentzVector lvec0;
+          lvec0.SetPtEtaPhiM(b_GenParton_pt[idx0], b_GenParton_eta[idx0], b_GenParton_phi[idx0], b_GenParton_m[idx0]);
+          dR0 = jetLVec.DeltaR(lvec0);
+          b_Jet_partonIdx[b_nJet] = idx1;
+          continue;
+        }
+
+        TLorentzVector lvec1;
+        lvec1.SetPtEtaPhiM(b_GenParton_pt[idx1], b_GenParton_eta[idx1], b_GenParton_phi[idx1], b_GenParton_m[idx1]);
+        const double dR1 = jetLVec.DeltaR(lvec1);
+        if ( dR0 > dR1 ) {
+          dR0 = dR1;
+          b_Jet_partonIdx[b_nJet] = idx1;
+          if ( doPrintDebug ) {
+            std::cout << "Multiple matches detected on Jet" << b_nJet << " (" << b_Jet_pt[i] << "," << b_Jet_eta[i] << "," << b_Jet_phi[i] << "). Replacing best match:"
+                      << "\n  <- PdgId=" << b_GenParton_pdgId[idx0] << " (" << b_GenParton_pt[idx0] << "," << b_GenParton_eta[idx0] << "," << b_GenParton_phi[idx0] << ")"
+                      << "\n  -> PdgId=" << b_GenParton_pdgId[idx1] << " (" << b_GenParton_pt[idx1] << "," << b_GenParton_eta[idx1] << "," << b_GenParton_phi[idx1] << ")"
+                      << endl;
+          }
         }
       }
 
@@ -450,6 +467,7 @@ void makeFlatTuple(const std::string finName, const std::string foutName)
 
       // Loop over the constituents to find its origin
       TRefArray cons = jet->Constituents;
+      std::set<const GenParticle*> matches;
       for ( int j=0; j<cons.GetEntriesFast(); ++j ) {
         const TObject* obj = cons.At(j);
         if ( !obj ) continue;
@@ -457,24 +475,42 @@ void makeFlatTuple(const std::string finName, const std::string foutName)
         const GenParticle* p = dynamic_cast<const GenParticle*>(obj);
         if ( !p ) continue;
 
-        std::set<const GenParticle*> matched = findPartonAncestors(p, branchGen, dauPtrToIdx);
-        if ( matched.empty() ) continue;
-        if ( matched.size() > 2 ) {
-          cout << "Multiple matches found, jet" << i << ", dau" << j << ", nMatch=" << matched.size() << endl;
-          for ( auto match : matched ) {
-            cout << "   " << match->PID << ' ' << endl;
+        findPartonAncestors(p, branchGen, dauPtrToIdx, matches);
+      }
+
+      double dR0 = 1e9;
+      TLorentzVector genJetLVec;
+      genJetLVec.SetPtEtaPhiM(b_GenJet_pt[i], b_GenJet_eta[i], b_GenJet_phi[i], b_GenJet_m[i]);
+      for ( auto p : matches ) {
+        const int idx1 = dauPtrToIdx[p];
+        const int dau1 = b_GenParton_dau1[idx1];
+        if ( dau1 != -1 ) continue;
+        const int pdgId = b_GenParton_pdgId[idx1];
+        if ( abs(pdgId) > 5 ) continue; // match quarks only
+
+        const int idx0 = b_GenJet_partonIdx[b_nGenJet];
+        if ( idx0 == -1 ) {
+          TLorentzVector lvec0;
+          lvec0.SetPtEtaPhiM(b_GenParton_pt[idx0], b_GenParton_eta[idx0], b_GenParton_phi[idx0], b_GenParton_m[idx0]);
+          dR0 = genJetLVec.DeltaR(lvec0);
+          b_GenJet_partonIdx[b_nGenJet] = idx1;
+          continue;
+        }
+
+        TLorentzVector lvec1;
+        lvec1.SetPtEtaPhiM(b_GenParton_pt[idx1], b_GenParton_eta[idx1], b_GenParton_phi[idx1], b_GenParton_m[idx1]);
+        const double dR1 = genJetLVec.DeltaR(lvec1);
+        if ( dR0 > dR1 ) {
+          dR0 = dR1;
+          b_GenJet_partonIdx[b_nGenJet] = idx1;
+          if ( doPrintDebug ) {
+            std::cout << "Multiple matches detected on GenJet" << b_nGenJet << " (" << b_GenJet_pt[i] << "," << b_GenJet_eta[i] << "," << b_GenJet_phi[i] << "). Replacing best match:"
+                      << "\n  <- PdgId=" << b_GenParton_pdgId[idx0] << " (" << b_GenParton_pt[idx0] << "," << b_GenParton_eta[idx0] << "," << b_GenParton_phi[idx0] << ")"
+                      << "\n  -> PdgId=" << b_GenParton_pdgId[idx1] << " (" << b_GenParton_pt[idx1] << "," << b_GenParton_eta[idx1] << "," << b_GenParton_phi[idx1] << ")"
+                      << endl;
           }
         }
-        b_GenJet_partonIdx[b_nGenJet] = dauPtrToIdx[*matched.begin()];
-
-        //cout << p << ' ' << p->PID << endl;
-        /*b_SubGenJet_pt[b_nSubGenJet] = track->PT;
-          b_SubGenJet_eta[b_nSubGenJet] = track->Eta;
-          b_SubGenJet_phi[b_nSubGenJet] = track->Phi;
-          b_SubGenJet_q[b_nSubGenJet] = track->Charge;
-          b_SubGenJet_pdgId[b_nSubGenJet] = track->Charge*211;*/
-        //b_SubGenJet_jetIdx[b_nSubGenJet] = b_nGenJet;
-        //++b_nSubGenJet;
+        b_GenJet_partonIdx[b_nGenJet] = idx1;
       }
 
       ++b_nGenJet;
